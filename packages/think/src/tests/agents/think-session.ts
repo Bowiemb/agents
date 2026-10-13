@@ -8899,6 +8899,27 @@ export class ThinkScheduledTasksTestAgent extends ThinkProgrammaticTestAgent {
       .getTime();
   }
 
+  async zonedFormatterConstructionsForTest(
+    schedule: string,
+    nowIso: string,
+    timezone: string
+  ): Promise<number> {
+    const original = Intl.DateTimeFormat;
+    let constructions = 0;
+    Intl.DateTimeFormat = new Proxy(original, {
+      construct(target, args, newTarget) {
+        constructions++;
+        return Reflect.construct(target, args, newTarget);
+      }
+    });
+    try {
+      await this.nextScheduleTimeForTest(schedule, nowIso, { timezone });
+    } finally {
+      Intl.DateTimeFormat = original;
+    }
+    return constructions;
+  }
+
   async listDeclaredScheduledTaskRowsForTest(): Promise<
     DeclaredScheduledTaskRowForTest[]
   > {
